@@ -1,0 +1,25 @@
+# Sensitive information
+.env
+.env.*
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Backups and database dumps
+*.sql
+*.sql.gz
+*.tar
+*.tar.gz
+
+# VMware virtual machine files
+*.vmdk
+*.vmem
+*.vmsn
+*.nvram
+*.vmsd
