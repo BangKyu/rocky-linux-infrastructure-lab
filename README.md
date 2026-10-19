@@ -30,6 +30,7 @@ LB01, WEB01, WEB02, DB01, NAS01, MON01
 | 03 | [WEB02 서버 구축 및 검증](docs/03-web02.md) | 완료 |
 | 04 | [LB01 서버 구축 및 검증](docs/04-lb01.md) | 완료 |
 | 05 | [WEB01 Apache 웹 서버 구축 및 HTTP 검증](docs/05-web01-apache.md) | 완료 |
+| 06 | [WEB02 Apache 웹 서버 구축 및 HTTP 검증](docs/06-web02-apache.md) | 완료 |
 
 ## 6. 장애 대응 및 검증
 - [WEB01 → Windows Ping 장애 분석 및 복구](docs/02-web01.md#7-트러블슈팅--web01에서-windows로-ping-실패)
