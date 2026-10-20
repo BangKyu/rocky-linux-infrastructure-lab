@@ -113,12 +113,12 @@ sudo systemctl stop httpd
 이후 서비스 상태를 다시 확인하였다.
 
 ```bash
-[Osystemctl is-active httpd
+systemctl is-active httpd
 ```
 
 **실제 결과**
 
-[I```text
+```text
 inactive
 ```
 
