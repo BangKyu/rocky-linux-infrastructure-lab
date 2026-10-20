@@ -1,5 +1,4 @@
-# Rocky Linux 9.8 기반 사내 업무 포털
-인프라 구축 및 장애 복구
+# Rocky Linux 9.8 기반 사내 업무 포털 인프라 구축 및 장애 복구
 
 ## 1. 프로젝트 소개
 VMware Workstation 환경에서 Rocky Linux
@@ -51,13 +50,15 @@ LB01, WEB01, WEB02, DB01, NAS01, MON01
 
 ## 6. 장애 대응 및 검증
 - [WEB01 → Windows Ping 장애 분석 및 복구](docs/02-web01.md#7-트러블슈팅--web01에서-windows로-ping-실패)
+- [HAProxy 장애 전환 및 복구 검증](docs/08-haproxy-failover.md)
+
 ## 7. 프로젝트 진행 현황
 
 | 서버 | IP 주소 | 기본 구축 | 서비스 구축 |
 |---|---|---|---|
-| LB01 | 192.168.100.10 | 완료 | HAProxy 예정 |
-| WEB01 | 192.168.100.21 | 완료 | Apache/PHP 예정 |
-| WEB02 | 192.168.100.22 | 완료 | Apache/PHP 예정 |
+| LB01 | 192.168.100.10 | 완료 | HAProxy 완료 |
+| WEB01 | 192.168.100.21 | 완료 | Apache 완료 / PHP 예정 |
+| WEB02 | 192.168.100.22 | 완료 | Apache 완료 / PHP 예정 |
 | DB01 | 192.168.100.31 | 예정 | MariaDB 예정 |
 | NAS01 | 192.168.100.41 | 예정 | NFS/LVM 예정 |
 | MON01 | 192.168.100.51 | 예정 | 모니터링 예정 |
