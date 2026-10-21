@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 352" width="680" role="img" aria-labelledby="title desc">
+<title id="title">Rocky Linux 업무 포털 목표 아키텍처</title>
+<desc id="desc">LB01 HAProxy가 WEB01과 WEB02에 요청을 분산하고, 웹 서버는 DB01 MariaDB 및 NAS01 NFS와 연결된다. MON01은 Prometheus와 Grafana로 서버를 모니터링한다.</desc>
+<g font-family="Arial, sans-serif" fill="#1a1c1f">
+<rect x="112" y="8" width="116" height="38" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="170" y="24" text-anchor="middle" font-size="12" font-weight="600">LB01 · HAProxy</text><text x="170" y="37" text-anchor="middle" font-size="10">192.168.100.10</text>
+<path d="M170 46 V62 H86 V77 M170 62 H254 V77" stroke="#94a3b8" stroke-width="1.7" fill="none"/>
+<rect x="12" y="77" width="146" height="51" rx="8" fill="#effaf0" stroke="#16a34a"/><text x="85" y="95" text-anchor="middle" font-size="12" font-weight="600">WEB01</text><text x="85" y="110" text-anchor="middle" font-size="11">Apache + PHP</text><text x="85" y="122" text-anchor="middle" font-size="9">192.168.100.21</text>
+<rect x="182" y="77" width="146" height="51" rx="8" fill="#effaf0" stroke="#16a34a"/><text x="255" y="95" text-anchor="middle" font-size="12" font-weight="600">WEB02</text><text x="255" y="110" text-anchor="middle" font-size="11">Apache + PHP</text><text x="255" y="122" text-anchor="middle" font-size="9">192.168.100.22</text>
+<path d="M85 128 V149 H170 V166 M255 128 V149 H170" stroke="#0d9488" stroke-width="1.7" fill="none"/><text x="170" y="160" text-anchor="middle" font-size="9" fill="#0d9488">TCP 3306</text>
+<rect x="104" y="168" width="132" height="45" rx="8" fill="#edf8f7" stroke="#0d9488"/><text x="170" y="185" text-anchor="middle" font-size="12" font-weight="600">DB01 · MariaDB</text><text x="170" y="200" text-anchor="middle" font-size="10">192.168.100.31</text>
+<path d="M85 128 V238 H87 V253 M255 128 V238 H87 V253" stroke="#d97706" stroke-width="1.4" stroke-dasharray="4 3" fill="none"/><text x="91" y="230" font-size="10" fill="#d97706">NFS</text>
+<rect x="5" y="253" width="164" height="63" rx="8" fill="#fff8ec" stroke="#d97706"/><text x="87" y="269" text-anchor="middle" font-size="12" font-weight="600">NAS01 · NFS</text><text x="87" y="283" text-anchor="middle" font-size="10">LVM / RAID 1</text><text x="87" y="298" text-anchor="middle" font-size="10">192.168.100.41</text>
+<path d="M255 128 V253 M236 190 H255" stroke="#8b5cf6" stroke-width="1.4" stroke-dasharray="4 3" fill="none"/>
+<rect x="187" y="253" width="148" height="63" rx="8" fill="#f7f3ff" stroke="#8b5cf6"/><text x="261" y="269" text-anchor="middle" font-size="12" font-weight="600">MON01</text><text x="261" y="283" text-anchor="middle" font-size="10">Prometheus · Grafana</text><text x="261" y="298" text-anchor="middle" font-size="10">192.168.100.51</text>
+<text x="170" y="342" text-anchor="middle" font-size="10">VMware Workstation · Rocky Linux 9.8</text>
+</g></svg>
