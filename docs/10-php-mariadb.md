@@ -774,7 +774,7 @@ http://192.168.100.22/db-test.php
 | 데이터 조회 | 2건 | 2건 |
 | HTTP 응답 | 200 OK | 200 OK |
 
-![WEB01과 WEB02의 PHP MariaDB 데이터 조회 검증](../screenshots/php/02-web01-web02-mariadb-query.png)
+![WEB01과 WEB02의 PHP MariaDB 데이터 조회 검증](../screenshots/php/02-web-mariadb-query.png)
 
 두 웹 서버에서 공통 DB 데이터를 동일하게 조회하는 것을 확인하였다.
 
