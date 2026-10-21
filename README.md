@@ -36,7 +36,7 @@ LB01, WEB01, WEB02, DB01, NAS01, MON01
 | 06 | [WEB02 Apache 웹 서버 구축 및 HTTP 검증](docs/06-web02-apache.md) | 완료 |
 | 07 | [LB01 HAProxy 설치 및 로드밸런싱 구성](docs/07-haproxy.md) | 완료 |
 | 08 | [HAProxy 장애 전환 및 복구 검증](docs/08-haproxy-failover.md) | 완료 |
-| 09 | DB01 서버 구축 및 MariaDB 설치 | 예정 |
+| 09 | [DB01 서버 구축 및 MariaDB 설치](docs/09-mariadb.md) | 완료 |
 | 10 | WEB01/WEB02 PHP 설치 및 DB 연동 | 예정 |
 | 11 | 사내 업무 포털 기능 구현 및 검증 | 예정 |
 | 12 | NAS01 서버 구축 및 LVM 스토리지 구성 | 예정 |
