@@ -1011,15 +1011,30 @@ HAProxy가 WEB01과 WEB02에 요청을 분산하더라도 두 웹 서버가 공�
 
 ---
 
-## 14. 다음 실습
+## 14. 관련 문서
 
-**11단원: 사내 업무 포털 웹 애플리케이션 구현**
+10단원은 앞서 구성한 Apache, HAProxy 및 MariaDB 환경을 이용하였으며, 후속 11단원에서 PHP 업무 포털 CRUD 검증으로 확장하였다.
+
+| 단원 | 관련 실습 | 연관 내용 |
+|---|---|---|
+| 05 | [WEB01 Apache 웹 서버 구축](05-web01-apache.md) | WEB01 Apache 실행 환경 |
+| 06 | [WEB02 Apache 웹 서버 구축](06-web02-apache.md) | WEB02 Apache 실행 환경 |
+| 07 | [HAProxy 설치 및 로드밸런싱 구성](07-haproxy.md) | WEB01/WEB02 요청 분산 |
+| 08 | [HAProxy 장애 전환 및 복구 검증](08-haproxy-failover.md) | 백엔드 헬스 체크 및 장애 전환 |
+| 09 | [DB01 MariaDB 설치 및 연동 검증](09-mariadb.md) | DB 서버, 원격 접속 및 계정 권한 |
+| 11 | [PHP 업무 포털 CRUD 구현 및 HAProxy 통합 검증](11-php-portal-crud.md) | PDO CRUD, WEB02 배포, Sticky Session |
+
+---
+
+## 15. 다음 실습
+
+**11단원: 사내 업무 포털 웹 애플리케이션 구현 (후속 실습)**
 
 이번 단원에서는 Apache, PHP, MariaDB 및 HAProxy 연동을 완료하였다.
 
-다음 단원에서는 간단한 사내 업무 포털 기능을 구현할 예정이다.
+다음 단원인 [11단원](11-php-portal-crud.md)에서는 PHP 업무 포털 CRUD 기능과 HAProxy 통합 동작을 검증하였다. 아래는 10단원 완료 시 계획한 후속 실습 항목이다.
 
-예정 작업:
+후속 실습 항목:
 
 1. 업무 포털 데이터베이스 테이블 설계
 2. 공지사항 또는 업무 게시판 구현
