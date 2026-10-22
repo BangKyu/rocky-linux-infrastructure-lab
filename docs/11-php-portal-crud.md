@@ -948,6 +948,12 @@ ORDER BY id;
 
 WEB02에서 등록한 신규 공지사항이 DB01에 저장되었다.
 
+![WEB02 공지사항 등록 결과](../screenshots/portal/15-web02-notice-create.png)
+
+WEB02에서 등록한 ID 3번 공지사항을 WEB01 포털에서도 조회하여, 두 웹 서버가 DB01의 공통 데이터를 사용함을 확인하였다.
+
+![WEB01에서 WEB02 등록 공지사항 조회](../screenshots/portal/16-web01-web02-shared-notices.png)
+
 ### 11.3 WEB02 공지사항 수정
 
 ID 3번을 다음과 같이 수정하였다.
