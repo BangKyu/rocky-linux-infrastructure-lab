@@ -1026,19 +1026,8 @@ HAProxy가 WEB01과 WEB02에 요청을 분산하더라도 두 웹 서버가 공�
 
 ---
 
-## 15. 다음 실습
+## 15. 후속 실습 결과
 
-**11단원: 사내 업무 포털 웹 애플리케이션 구현 (후속 실습)**
+10단원에서는 Apache, PHP, MariaDB 및 HAProxy 연동을 완료하였다. 당시 후속 실습으로 계획한 사내 업무 포털은 [11단원: PHP 업무 포털 CRUD 구현 및 HAProxy 통합 검증](11-php-portal-crud.md)에서 구현하고 검증하였다.
 
-이번 단원에서는 Apache, PHP, MariaDB 및 HAProxy 연동을 완료하였다.
-
-다음 단원인 [11단원](11-php-portal-crud.md)에서는 PHP 업무 포털 CRUD 기능과 HAProxy 통합 동작을 검증하였다. 아래는 10단원 완료 시 계획한 후속 실습 항목이다.
-
-후속 실습 항목:
-
-1. 업무 포털 데이터베이스 테이블 설계
-2. 공지사항 또는 업무 게시판 구현
-3. PHP PDO를 이용한 데이터 조회
-4. 데이터 등록·수정·삭제 기능 구현
-5. Prepared Statement와 HTML 출력값 이스케이프 적용
-6. WEB01/WEB02 서비스 구성 및 HAProxy 통합 검증
+11단원에서는 `notices` 테이블을 생성하고 PHP PDO를 이용한 공지사항 조회·등록·수정·삭제 기능을 WEB01과 WEB02에서 검증하였다. Prepared Statement와 HTML 출력 이스케이프를 적용했으며, 두 웹 서버의 공통 DB 데이터와 HAProxy 경유 동작도 확인하였다.
