@@ -53,7 +53,7 @@ VMware Workstation 환경에서 Rocky Linux 9.8 기반 사내 업무 포털 인�
 
 ![사내 업무 포털 목표 아키텍처: HAProxy, WEB01·WEB02, MariaDB, NFS, Prometheus·Grafana](diagrams/infrastructure-architecture.svg)
 
-> 목표 구성도이다. 현재 HAProxy, Apache/PHP 및 MariaDB 연동 검증을 완료하였으며, 사내 업무 포털 구현과 NAS01·MON01 구성은 향후 실습에서 진행할 예정이다.
+> 목표 구성도이다. 현재 HAProxy, Apache/PHP, MariaDB 및 사내 업무 포털 CRUD 통합 검증을 완료하였다. NAS01·MON01 구성은 향후 실습에서 진행할 예정이다.
 
 웹 애플리케이션 코드는 WEB01과 WEB02에 각각 배포한다.
 
@@ -91,7 +91,7 @@ MON01에서 서버 자원 사용률과 주요 서비스 상태를 수집하고 �
 |---|---|---|
 | 09 | [DB01 서버 구축 및 MariaDB 설치·연동 검증](docs/09-mariadb.md) | 완료 |
 | 10 | [WEB01/WEB02 PHP 설치 및 MariaDB 연동 검증](docs/10-php-mariadb.md) | 완료 |
-| 11 | 사내 업무 포털 웹 애플리케이션 구현 | 예정 |
+| 11 | [PHP + MariaDB 기반 사내 업무 포털 CRUD 구현 및 HAProxy 통합 검증](docs/11-php-portal-crud.md) | 완료 |
 | 12 | rsync 기반 웹 애플리케이션 배포 및 동기화 | 예정 |
 
 ### PHASE 4. RAID · LVM · NFS 스토리지
@@ -147,12 +147,15 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 - [MariaDB 원격 접속 및 최소 권한 검증](docs/09-mariadb.md)
 - [WEB02 PHP → MariaDB 인증 오류 분석 및 복구](docs/10-php-mariadb.md#9-web02-php--mariadb-연동-오류-분석-및-복구)
 - [HAProxy PHP Round Robin 및 공통 DB 조회 검증](docs/10-php-mariadb.md#10-haproxy-통합-연동-검증)
+- [HAProxy Sticky Session 및 공통 DB CRUD 통합 검증](docs/11-php-portal-crud.md#13-haproxy-sticky-session-구성-및-검증)
 
 10단원에서는 WEB02의 HTTP 500 오류를 PHP-FPM 로그에서 확인하고, MariaDB ERROR 1045 인증 문제를 분석하여 복구하였다.
 
 또한 HAProxy를 통해 WEB01과 WEB02가 번갈아 응답하면서 DB01의 동일한 데이터를 조회하는 것을 확인하였다.
 
 검증 후 임시 PHP 테스트 파일을 제거하고 두 웹 서버에서 HTTP 404 응답을 확인하였다.
+
+11단원에서는 PHP CRUD 예제 애플리케이션을 WEB01/WEB02에 배포하고 공통 DB 연동을 검증하였다. HAProxy에서 쿠키 기반 Sticky Session을 구성한 뒤 CRUD 작업과 HTTP 404/200/200 응답을 확인하였다. 단, 웹 서버 장애 시 PHP 세션 자동 복구는 검증 범위에 포함하지 않았다.
 
 향후 RAID 디스크 장애, NFS 마운트 장애, MariaDB 데이터 복구, SELinux·firewalld 접근 오류 및 서비스 장애를 추가 검증할 예정이다.
 
@@ -163,10 +166,10 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 | 구분 | 단원 수 |
 |---|---:|
 | 전체 계획 | 27 |
-| 완료 | 10 |
-| 예정 | 17 |
+| 완료 | 11 |
+| 예정 | 16 |
 
-**현재 진행 단계: 10단원 완료 / 11단원 진행 예정**
+**현재 진행 단계: 11단원 완료 / 12단원 진행 예정**
 
 진행률은 단원 개수를 기준으로 계산하며, 실제 작업 시간과 난이도에 따른 진행률을 의미하지는 않는다.
 
@@ -174,9 +177,9 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 | 서버 | IP 주소 | 기본 구축 | 서비스 구축 |
 |---|---|---|---|
-| LB01 | 192.168.100.10 | 완료 | HAProxy 완료 |
-| WEB01 | 192.168.100.21 | 완료 | Apache/PHP 및 MariaDB 연동 검증 완료 |
-| WEB02 | 192.168.100.22 | 완료 | Apache/PHP 및 MariaDB 연동 검증 완료 |
+| LB01 | 192.168.100.10 | 완료 | HAProxy Round Robin / Sticky Session 검증 완료 |
+| WEB01 | 192.168.100.21 | 완료 | Apache/PHP 업무 포털 CRUD 완료 |
+| WEB02 | 192.168.100.22 | 완료 | Apache/PHP 업무 포털 배포 및 CRUD 검증 완료 |
 | DB01 | 192.168.100.31 | 완료 | MariaDB 완료 |
 | NAS01 | 192.168.100.41 | 예정 | RAID/LVM/NFS 예정 |
 | MON01 | 192.168.100.51 | 예정 | Prometheus/Grafana 예정 |
@@ -197,22 +200,16 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 ## 9. 다음 실습
 
-10단원에서는 WEB01과 WEB02에 PHP 실행 환경을 구성하고, PHP PDO를 이용하여 DB01 MariaDB에 연결하는 실습을 완료하였다.
+**12단원: rsync 기반 웹 애플리케이션 배포 및 동기화**
 
-SELinux Enforcing 환경에서 DB 네트워크 접근 정책을 적용하였으며, HAProxy를 통한 요청 분산과 공통 데이터베이스 조회를 검증하였다.
+11단원에서는 PHP PDO 공지사항 CRUD 예제 애플리케이션을 WEB01과 WEB02에 배포하였다. 두 웹 서버가 DB01의 공통 MariaDB를 사용함을 확인하고, HAProxy Round Robin 및 쿠키 기반 Sticky Session을 적용하여 HTTP 요청과 CRUD 동작을 검증하였다.
 
-또한 WEB02에서 발생한 MariaDB 인증 오류를 PHP-FPM 로그를 통해 분석하고 복구하였다.
-
-**다음 실습: 11단원 사내 업무 포털 웹 애플리케이션 구현**
+다음 단원에서는 SCP를 이용한 수동 배포를 rsync 기반 동기화 방식으로 개선할 예정이다.
 
 **예정 작업**
 
-1. 사내 업무 포털 기능 및 데이터베이스 테이블 설계
-2. 공지사항 또는 업무 게시판 구현
-3. PHP PDO를 이용한 데이터 조회 기능 구현
-4. 데이터 등록·수정·삭제(CRUD) 기능 구현
-5. Prepared Statement 및 HTML 출력값 이스케이프 적용
-6. WEB01/WEB02에 동일한 웹 애플리케이션 구성
-7. HAProxy를 통한 서비스 분산 및 공통 데이터 검증
-
-11단원에서는 10단원에서 구성한 Apache/PHP, MariaDB 연동 환경과 비공개 DB 설정 파일을 재사용할 예정이다.
+1. WEB01/WEB02 웹 애플리케이션 파일 구조 비교
+2. rsync 설치 및 변경 파일 동기화 검증
+3. 비공개 DB 인증 정보 동기화 대상 제외
+4. 배포 후 파일 권한 및 SELinux 컨텍스트 확인
+5. HAProxy 경유 서비스 정상 동작 재검증
