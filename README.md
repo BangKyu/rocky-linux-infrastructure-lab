@@ -53,7 +53,7 @@ VMware Workstation 환경에서 Rocky Linux 9.8 기반 사내 업무 포털 인�
 
 ![사내 업무 포털 목표 아키텍처: HAProxy, WEB01·WEB02, MariaDB, NFS, Prometheus·Grafana](diagrams/infrastructure-architecture.svg)
 
-> 목표 구성도이다. 현재 HAProxy, Apache/PHP, MariaDB, 사내 업무 포털 CRUD 및 rsync 동기화 실습과 NAS01 기본 구축·네트워크 검증을 완료하였다. NAS01의 RAID/LVM/NFS와 MON01 구성은 향후 실습에서 진행할 예정이다.
+> 목표 구성도이다. 현재 HAProxy, Apache/PHP, MariaDB, 사내 업무 포털 CRUD 및 rsync 동기화, NAS01의 RAID 1·LVM·NFS 구성과 WEB01·WEB02 NFS 연동을 검증하였다. MON01 구성은 향후 실습에서 진행할 예정이다.
 
 웹 애플리케이션 코드는 WEB01과 WEB02에 각각 배포한다.
 
@@ -100,9 +100,9 @@ MON01에서 서버 자원 사용률과 주요 서비스 상태를 수집하고 �
 |---|---|---|
 | 13 | [NAS01 서버 구축 및 네트워크 구성](docs/13-nas01.md) | 완료 |
 | 14 | [RAID 구성, 디스크 장애 및 복구 검증](docs/14-raid.md) | 완료 |
-| 15 | LVM 논리 볼륨 구성 및 용량 확장 | 예정 |
-| 16 | NAS01 NFS 공유 스토리지 구축 | 예정 |
-| 17 | WEB01/WEB02 NFS 연동 및 파일 권한 검증 | 예정 |
+| 15 | [LVM 논리 볼륨 구성 및 용량 확장](docs/15-lvm.md) | 완료 |
+| 16 | [NAS01 NFS 공유 스토리지 구축](docs/16-nfs-server.md) | 완료 |
+| 17 | [WEB01/WEB02 NFS 연동 및 파일 권한 검증](docs/17-nfs-client.md) | 완료 |
 
 RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 구조 비교 및 선택적 추가 실습으로 다룬다.
 
@@ -159,7 +159,9 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 [12단원](docs/12-rsync-deployment.md)에서는 테스트 디렉터리의 최초·증분 rsync 동기화, 실제 포털 파일의 스테이징 복사와 백업·권한·SELinux 확인, WEB02 및 HAProxy 경유 HTTP 응답을 검증하였다. 스테이징 파일과 운영 파일이 동일해 운영 포털 파일은 덮어쓰지 않았다.
 
-향후 RAID 디스크 장애, NFS 마운트 장애, MariaDB 데이터 복구, SELinux·firewalld 접근 오류 및 서비스 장애를 추가 검증할 예정이다.
+[14단원](docs/14-raid.md)에서는 RAID 1 디스크 장애 및 복구를 검증하였다. [15단원](docs/15-lvm.md)에서는 LVM 용량 확장을, [16단원](docs/16-nfs-server.md)에서는 NAS01의 NFS 서버 설정과 재부팅 후 유지를 확인하였다. [17단원](docs/17-nfs-client.md)에서는 두 웹 서버의 NFSv4.2 마운트, 서로 다른 UID의 그룹 쓰기, 재부팅 후 자동 마운트 및 Apache HTTP 연동을 검증하였다.
+
+향후 NAS01 또는 NFS 서비스 중단 시 클라이언트 동작, MariaDB 데이터 복구, SELinux·firewalld 접근 오류 및 통합 서비스 장애를 추가 검증할 예정이다.
 
 ## 7. 프로젝트 진행 현황
 
@@ -168,10 +170,10 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 | 구분 | 단원 수 |
 |---|---:|
 | 전체 계획 | 27 |
-| 완료 | 13 |
-| 예정 | 14 |
+| 완료 | 17 |
+| 예정 | 10 |
 
-**현재 진행 단계: 13/27단원 완료 · 14/27단원 예정 / 다음: 14단원 RAID 구성·디스크 장애 및 복구 검증**
+**현재 진행 단계: 17/27단원 완료 · 10/27단원 예정 / 다음: 18단원 Linux Server Hardening**
 
 진행률은 단원 개수를 기준으로 계산하며, 실제 작업 시간과 난이도에 따른 진행률을 의미하지는 않는다.
 
@@ -183,7 +185,7 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 | WEB01 | 192.168.100.21 | 완료 | Apache/PHP 업무 포털 CRUD 완료 |
 | WEB02 | 192.168.100.22 | 완료 | Apache/PHP 업무 포털 배포 및 CRUD 검증 완료 |
 | DB01 | 192.168.100.31 | 완료 | MariaDB 완료 |
-| NAS01 | 192.168.100.41 | 완료 | RAID/LVM/NFS 예정 |
+| NAS01 | 192.168.100.41 | 완료 | RAID 1/LVM/NFS 구성 및 웹 서버 연동 검증 완료 |
 | MON01 | 192.168.100.51 | 예정 | Prometheus/Grafana 예정 |
 
 ## 8. 실습 문서화 원칙
@@ -202,8 +204,8 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 ## 9. 다음 실습
 
-**14단원: RAID 구성·디스크 장애 및 복구 검증**
+**18단원: Linux Server Hardening**
 
-[12단원 rsync 기반 웹 애플리케이션 배포 및 동기화](docs/12-rsync-deployment.md)에서는 테스트 디렉터리의 최초·증분 동기화와 운영 포털 파일의 스테이징 검증을 완료했다. 변경된 운영 포털 파일의 실제 반영은 수행하지 않았다.
+[14단원 RAID 구성·디스크 장애 및 복구](docs/14-raid.md)와 [15단원 LVM 논리 볼륨 구성 및 용량 확장](docs/15-lvm.md)을 거쳐 NAS01의 공유 스토리지 기반을 마련했다. [16단원 NFS 서버 구축](docs/16-nfs-server.md)과 [17단원 WEB01·WEB02 NFS 연동](docs/17-nfs-client.md)에서는 공유 경로, 파일 권한, 자동 마운트 및 Apache HTTP 접근을 검증했다.
 
-[13단원 NAS01 서버 구축 및 네트워크 구성](docs/13-nas01.md)에서는 NAS01 기본 구축과 WEB01 간 양방향 네트워크 통신을 검증했다. 다음 단원에서는 NAS01에 데이터 디스크를 추가하고 RAID 1 구성, 디스크 장애 및 복구를 검증할 예정이다.
+다음 단원에서는 현재 서버 구성을 바탕으로 Linux Server Hardening을 실습할 예정이다.
