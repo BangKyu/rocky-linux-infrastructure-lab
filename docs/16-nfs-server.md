@@ -598,6 +598,8 @@ NFS shared storage test
 | 재부팅 후 테스트 파일 | 내용 및 권한 유지 | 성공 |
 | WEB01·WEB02 실제 NFS 마운트 | 17단원에서 검증 예정 | 미진행 |
 
+> 이후 WEB01·WEB02의 NFS 마운트, 파일 권한, 자동 마운트 및 Apache 연동 결과는 [17단원 — NFS 클라이언트 연동 및 파일 권한 검증](./17-nfs-client.md)에 기록하였다.
+
 ### 최종 결과
 
 NAS01에 `nfs-utils`를 설치하고 RAID 1 + LVM + XFS 기반 `/data/nfs/share`를 NFS 공유 디렉터리로 구성하였다.
