@@ -235,7 +235,6 @@ systemctl is-active node_exporter
 systemctl is-enabled node_exporter
 sudo ss -lntp | grep ':9100'
 ```
-[O
 **결과**
 
 ```text
