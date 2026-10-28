@@ -128,7 +128,7 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 | 번호 | 실습 주제 | 상태 |
 |---|---|---|
-| 24 | MON01 서버 구축 및 Prometheus 설치 | 예정 |
+[ 24 | [Prometheus 모니터링 서버 구축 및 메트릭 수집 검증](docs/24-prometheus.md) | 완료 |
 | 25 | Node Exporter 구성 및 모니터링 대상 등록 | 예정 |
 | 26 | Grafana 대시보드 구성 | 예정 |
 | 27 | Alertmanager 장애 알림 구성 | 예정 |
