@@ -47,19 +47,19 @@ VMware Workstation 환경에서 Rocky Linux 9.8 기반 사내 업무 포털 인�
 | WEB02 | 192.168.100.22 | 웹 서버 2 | Apache, PHP |
 | DB01 | 192.168.100.31 | 데이터베이스 서버 | MariaDB |
 | NAS01 | 192.168.100.41 | 공유 스토리지 서버 | RAID, LVM, NFS |
-| MON01 | 192.168.100.51 | 모니터링 서버 | Prometheus, Grafana |
+| MON01 | 192.168.100.51 | 모니터링 서버 | Prometheus, Grafana, Alertmanager |
 
 ### 4.2 목표 아키텍처
 
 ![사내 업무 포털 목표 아키텍처: HAProxy, WEB01·WEB02, MariaDB, NFS, Prometheus·Grafana](diagrams/infrastructure-architecture.svg)
 
-> 목표 구성도이다. 현재 HAProxy, Apache/PHP, MariaDB, 사내 업무 포털 CRUD 및 rsync 동기화, NAS01의 RAID 1·LVM·NFS 구성과 WEB01·WEB02 NFS 연동을 검증하였다. MON01에 Prometheus를 구축하고 6대 서버의 Node Exporter를 연동하여 전체 수집 대상 7 / 7 UP을 검증하였다. Grafana 대시보드와 Alertmanager 장애 알림은 후속 실습에서 구성할 예정이다.
+> 목표 구성도이다. 현재 HAProxy, Apache/PHP, MariaDB, 사내 업무 포털 CRUD 및 rsync 동기화, NAS01의 RAID 1·LVM·NFS 구성과 WEB01·WEB02 NFS 연동을 검증하였다. MON01에 Prometheus를 구축하고 6대 서버의 Node Exporter를 연동하여 전체 수집 대상 7 / 7 UP을 검증하였다. Grafana에서 6대 서버의 리소스 대시보드를 검증했고, Alertmanager에서 WEB01 Node Exporter 장애 발생 및 복구 알림을 로컬 Webhook으로 검증하였다.
 
 웹 애플리케이션 코드는 WEB01과 WEB02에 각각 배포한다.
 
 업무 데이터는 DB01의 MariaDB에 저장하고, 공유 파일은 NAS01의 NFS 스토리지에서 관리하는 구조를 목표로 한다.
 
-MON01의 Prometheus에서 6대 서버의 CPU·메모리·디스크 등 시스템 리소스 메트릭을 수집하고 있으며, Grafana 시각화와 장애 알림은 후속 실습에서 구성할 예정이다.
+MON01의 Prometheus에서 6대 서버의 CPU·메모리·디스크 등 시스템 리소스 메트릭을 수집하고, Grafana에서 서버별로 시각화하였다. Alertmanager는 WEB01 Node Exporter의 장애 발생과 복구 알림을 로컬 Webhook으로 전달하도록 구성하였다.
 
 ## 5. 실습 문서 및 진행 계획
 
@@ -130,8 +130,8 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 |---|---|---|
 | 24 | [Prometheus 모니터링 서버 구축 및 메트릭 수집 검증](docs/24-prometheus.md) | 완료 |
 | 25 | [Node Exporter 기반 Linux 서버 메트릭 수집 및 통합 모니터링](docs/25-node-exporter.md) | 완료 |
-| 26 | Grafana 대시보드 구성 | 예정 |
-| 27 | Alertmanager 장애 알림 구성 | 예정 |
+| 26 | [Grafana 기반 Linux 서버 리소스 대시보드 구축 및 통합 모니터링](docs/26-grafana.md) | 완료 |
+| 27 | [Alertmanager 기반 Linux 서버 장애 감지 및 알림 검증](docs/27-alertmanager.md) | 완료 |
 
 ### PHASE 8. 백업 자동화 및 장애 복구
 
@@ -176,7 +176,7 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 [18단원](docs/18-ssh-hardening.md)에서는 SSH 설정을 강화하고 신규 관리자 접속을 확인하였다. [19단원](docs/19-firewall-selinux.md)에서는 firewalld 허용 규칙과 SELinux Enforcing 상태의 Apache·NFS 연동을 점검하였다. [20단원](docs/20-account-service-hardening.md)에서는 계정·서비스 상태를 확인하고 사용하지 않는 서비스 설정을 정리하였다. [21단원](docs/21-security-updates.md)에서는 보안 업데이트, WEB02의 Python 패키지 의존성 충돌 해결 및 재부팅 후 서비스 동작을 기록하였다.
 
-[22단원](docs/22-process-resource.md)에서는 WEB01의 프로세스·리소스와 Apache 상태를 점검하고, CPU 부하 종료 후 HTTP 200 응답을 확인하였다. [23단원](docs/23-log-management.md)에서는 시스템·Apache 로그를 분석하고 의도적인 HTTP 404 요청을 Access 로그에서 추적한 뒤 HTTP 200 정상 응답을 확인하였다. [24단원](docs/24-prometheus.md)에서는 MON01의 Prometheus 자체 메트릭 수집을 확인했고, [25단원](docs/25-node-exporter.md)에서는 6대 서버의 Node Exporter를 연동하여 전체 7 / 7 UP을 검증하였다.
+[22단원](docs/22-process-resource.md)에서는 WEB01의 프로세스·리소스와 Apache 상태를 점검하고, CPU 부하 종료 후 HTTP 200 응답을 확인하였다. [23단원](docs/23-log-management.md)에서는 시스템·Apache 로그를 분석하고 의도적인 HTTP 404 요청을 Access 로그에서 추적한 뒤 HTTP 200 정상 응답을 확인하였다. [24단원](docs/24-prometheus.md)에서는 MON01의 Prometheus 자체 메트릭 수집을 확인했고, [25단원](docs/25-node-exporter.md)에서는 6대 서버의 Node Exporter를 연동하여 전체 7 / 7 UP을 검증하였다. [26단원](docs/26-grafana.md)에서는 Grafana로 6대 서버의 CPU·메모리·디스크 대시보드를 구성하였다. [27단원](docs/27-alertmanager.md)에서는 WEB01 Node Exporter의 장애 발생과 복구 알림을 로컬 Webhook으로 검증하였다.
 
 향후 NAS01 또는 NFS 서비스 중단 시 클라이언트 동작, MariaDB 데이터 복구 및 통합 서비스 장애를 추가 검증할 예정이다.
 
@@ -187,10 +187,10 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 | 구분 | 단원 수 |
 |---|---:|
 | 전체 계획 | 33 |
-| 완료 | 25 |
-| 예정 | 8 |
+| 완료 | 27 |
+| 예정 | 6 |
 
-**현재 진행 단계: 25/33단원 완료 · 8/33단원 예정 / 다음: 26단원 Grafana 대시보드 구성**
+**현재 진행 단계: 27/33단원 완료 · 6/33단원 예정 / 다음: 28단원 Bash·rsync 기반 파일 백업**
 
 진행률은 단원 개수를 기준으로 계산하며, 실제 작업 시간과 난이도에 따른 진행률을 의미하지는 않는다.
 
@@ -203,7 +203,7 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 | WEB02 | 192.168.100.22 | 완료 | Apache/PHP 업무 포털 배포 및 CRUD 검증 완료 |
 | DB01 | 192.168.100.31 | 완료 | MariaDB 완료 |
 | NAS01 | 192.168.100.41 | 완료 | RAID 1/LVM/NFS 구성 및 웹 서버 연동 검증 완료 |
-| MON01 | 192.168.100.51 | 완료 | Prometheus 3.13.5 / Node Exporter 1.12.1 구축 완료, Grafana 예정 |
+| MON01 | 192.168.100.51 | 완료 | Prometheus 3.13.5 / Node Exporter 1.12.1 / Grafana 13.3.0 / Alertmanager 0.34.1 구축 및 검증 완료 |
 
 ## 8. 실습 문서화 원칙
 
@@ -221,6 +221,6 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 ## 9. 다음 실습
 
-**26단원: Grafana 설치 및 Prometheus 대시보드 구성**
+**28단원: Bash·rsync 기반 파일 백업**
 
-24단원에서 Prometheus 서버를 구축하고, 25단원에서 6대 서버의 Node Exporter를 연동하여 전체 수집 대상 7 / 7 UP을 검증하였다. 다음 단원에서는 MON01에 Grafana를 설치하고 Prometheus를 데이터 소스로 연결하여 CPU·메모리·디스크 사용률을 시각화할 예정이다.
+26단원에서 Grafana 대시보드를 구성하고, 27단원에서 WEB01 Node Exporter의 장애 발생·복구 알림을 검증하였다. 다음 단원에서는 Bash와 rsync를 이용한 파일 백업 및 복구를 실습할 예정이다.
