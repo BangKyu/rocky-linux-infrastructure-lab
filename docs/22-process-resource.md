@@ -396,3 +396,4 @@ Server: Apache/2.4.62 (Rocky Linux)
 
 - [20. 사용자 및 서비스 보안 강화](20-account-service-hardening.md)
 - [21. 보안 업데이트 및 패키지 의존성 충돌 해결](21-security-updates.md)
+- [23. Linux 로그 관리 및 로그 기반 장애 분석](23-log-management.md)
