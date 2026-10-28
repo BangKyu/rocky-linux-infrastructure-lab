@@ -201,7 +201,7 @@ rpm -q kernel-core openssh-server httpd php firewalld NetworkManager
 | firewalld | 1.3.4-18.el9_7 |
 | NetworkManager | 1.54.3-2.el9 |
 
-[O### 4.3 디스크 여유 공간 확인
+### 4.3 디스크 여유 공간 확인
 
 ```bash
 df -h /

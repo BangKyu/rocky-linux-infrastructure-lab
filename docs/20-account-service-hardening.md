@@ -207,7 +207,7 @@ systemctl is-active httpd
 
 `rpcbind`는 RPC 서비스의 포트 정보를 관리하는 기능이다. NFSv3 등의 환경에서는 필요할 수 있으나, 이번 프로젝트에서는 NFSv4.2를 사용하고 있다.
 
-따라서 실제 NFS 구성과 의존성을 확인한 뒤 rpcbind 비활성화하였다.
+따라서 실제 NFS 구성과 의존성을 확인한 뒤 rpcbind를 비활성화하였다.
 
 ### 4.2 NFS 클라이언트 버전 확인
 
