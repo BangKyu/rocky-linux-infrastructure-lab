@@ -153,36 +153,42 @@ RAID 1을 NFS 스토리지의 기본 구성으로 활용하고, RAID 0·5·6은 
 
 ## 6. 주요 장애 대응 및 검증
 
-현재까지 수행한 장애 분석 및 검증 기록:
+### 6.1 서비스 연동과 장애 분석
 
-- [WEB01 → Windows Ping 장애 분석 및 복구](docs/02-web01.md#7-트러블슈팅--web01에서-windows로-ping-실패)
-- [HAProxy 장애 전환 및 복구 검증](docs/08-haproxy-failover.md)
-- [MariaDB 원격 접속 및 최소 권한 검증](docs/09-mariadb.md)
-- [WEB02 PHP → MariaDB 인증 오류 분석 및 복구](docs/10-php-mariadb.md#9-web02-php--mariadb-연동-오류-분석-및-복구)
-- [HAProxy PHP Round Robin 및 공통 DB 조회 검증](docs/10-php-mariadb.md#10-haproxy-통합-연동-검증)
-- [HAProxy Sticky Session 및 공통 DB CRUD 통합 검증](docs/11-php-portal-crud.md#13-haproxy-sticky-session-구성-및-검증)
+| 분야 | 확인한 결과 | 상세 기록 |
+|---|---|---|
+| 네트워크 | WEB01에서 Windows로의 Ping 장애를 분석하고 복구 | [02단원](docs/02-web01.md) |
+| 로드밸런싱 | HAProxy의 WEB01 장애 전환 및 복구, Round Robin 응답 확인 | [08단원](docs/08-haproxy-failover.md) |
+| DB 접근 | MariaDB 원격 접속과 최소 권한 검증 | [09단원](docs/09-mariadb.md) |
+| PHP·DB | WEB02의 HTTP 500을 PHP-FPM 로그에서 확인하고 MariaDB ERROR 1045 인증 문제를 복구. 두 웹 서버의 공통 DB 조회 검증 | [10단원](docs/10-php-mariadb.md) |
+| 업무 포털 | WEB01·WEB02의 CRUD와 HAProxy 쿠키 기반 Sticky Session 검증 | [11단원](docs/11-php-portal-crud.md) |
 
-10단원에서는 WEB02의 HTTP 500 오류를 PHP-FPM 로그에서 확인하고, MariaDB ERROR 1045 인증 문제를 분석하여 복구하였다.
+10단원의 임시 PHP 테스트 파일은 검증 후 제거했으며 두 웹 서버에서 HTTP 404를 확인했다. 11단원의 웹 서버 장애 시 PHP 세션 자동 복구는 검증하지 않았다.
 
-또한 HAProxy를 통해 WEB01과 WEB02가 번갈아 응답하면서 DB01의 동일한 데이터를 조회하는 것을 확인하였다.
+### 6.2 구축 후 운영 검증
 
-검증 후 임시 PHP 테스트 파일을 제거하고 두 웹 서버에서 HTTP 404 응답을 확인하였다.
+| 분야 | 확인한 결과 | 상세 기록 |
+|---|---|---|
+| 배포 | rsync 최초·증분 동기화, 포털 파일의 스테이징 복사와 권한·SELinux·HTTP 확인. 스테이징과 운영 파일이 같아 운영 파일은 덮어쓰지 않음 | [12단원](docs/12-rsync-deployment.md) |
+| 스토리지 | RAID 1 장애·복구, LVM 확장, NFS 서버 재부팅 후 유지, 두 웹 서버의 NFSv4.2 접근과 권한·자동 마운트 확인 | [14](docs/14-raid.md) · [15](docs/15-lvm.md) · [16](docs/16-nfs-server.md) · [17단원](docs/17-nfs-client.md) |
+| 보안 | SSH, firewalld·SELinux, 계정·서비스, 보안 업데이트와 재부팅 후 동작 점검 | [18](docs/18-ssh-hardening.md) · [19](docs/19-firewall-selinux.md) · [20](docs/20-account-service-hardening.md) · [21단원](docs/21-security-updates.md) |
+| 운영 관리 | CPU 부하 종료 후 Apache HTTP 200, 의도한 HTTP 404를 Access 로그에서 추적한 뒤 HTTP 200 확인 | [22](docs/22-process-resource.md) · [23단원](docs/23-log-management.md) |
+| 모니터링·알림 | Prometheus와 6대 서버의 Node Exporter 전체 7/7 UP, Grafana 자원 그래프, WEB01 장애·복구의 로컬 Webhook 알림 확인 | [24](docs/24-prometheus.md) · [25](docs/25-node-exporter.md) · [26](docs/26-grafana.md) · [27단원](docs/27-alertmanager.md) |
+| 백업·복원 | 파일·MariaDB·NFS 데이터의 백업과 별도 경로 복원, cron 실행, 대상 파일의 SHA-256 비교 | [28](docs/28-file-backup.md) · [29](docs/29-cron-backup.md) · [30](docs/30-mariadb-backup.md) · [31단원](docs/31-nfs-backup.md) |
 
-11단원에서는 PHP CRUD 예제 애플리케이션을 WEB01/WEB02에 배포하고 공통 DB 연동을 검증하였다. HAProxy에서 쿠키 기반 Sticky Session을 구성한 뒤 CRUD 작업과 HTTP 404/200/200 응답을 확인하였다. 단, 웹 서버 장애 시 PHP 세션 자동 복구는 검증 범위에 포함하지 않았다.
+### 6.3 통합 장애 복구와 최종 상태
 
-[12단원](docs/12-rsync-deployment.md)에서는 테스트 디렉터리의 최초·증분 rsync 동기화, 실제 포털 파일의 스테이징 복사와 백업·권한·SELinux 확인, WEB02 및 HAProxy 경유 HTTP 응답을 검증하였다. 스테이징 파일과 운영 파일이 동일해 운영 포털 파일은 덮어쓰지 않았다.
+[32단원](docs/32-integrated-recovery.md)에서는 세 가지 장애를 발생 전·중·복구 후로 비교했다.
 
-[14단원](docs/14-raid.md)에서는 RAID 1 디스크 장애 및 복구를 검증하였다. [15단원](docs/15-lvm.md)에서는 LVM 용량 확장을, [16단원](docs/16-nfs-server.md)에서는 NAS01의 NFS 서버 설정과 재부팅 후 유지를 확인하였다. [17단원](docs/17-nfs-client.md)에서는 두 웹 서버의 NFSv4.2 마운트, 서로 다른 UID의 그룹 쓰기, 재부팅 후 자동 마운트 및 Apache HTTP 연동을 검증하였다.
+| 장애 지점 | 장애 중 영향 | 복구 후 확인 |
+|---|---|---|
+| DB01 MariaDB 중지 | WEB01 포털 HTTP 500 | 포털 HTTP 200, 공지사항 1건 유지 |
+| NAS01 SSH 중지 | 원격 rsync 백업 실패 | SSH 복구 후 백업 성공, `portal/index.php` SHA-256 일치 |
+| LB01 HAProxy 중지 | 경유 HTTP 연결 거부. WEB01 직접 접속은 HTTP 200 | HAProxy 경유 HTTP 200 |
 
-[18단원](docs/18-ssh-hardening.md)에서는 SSH 설정을 강화하고 신규 관리자 접속을 확인하였다. [19단원](docs/19-firewall-selinux.md)에서는 firewalld 허용 규칙과 SELinux Enforcing 상태의 Apache·NFS 연동을 점검하였다. [20단원](docs/20-account-service-hardening.md)에서는 계정·서비스 상태를 확인하고 사용하지 않는 서비스 설정을 정리하였다. [21단원](docs/21-security-updates.md)에서는 보안 업데이트, WEB02의 Python 패키지 의존성 충돌 해결 및 재부팅 후 서비스 동작을 기록하였다.
+MariaDB 장애 중 포털 HTTP 500은 확인했지만, PHP 예외 메시지 원문은 확인하지 못했다. NAS 백업 해시 비교는 해당 파일에 한정된다.
 
-[22단원](docs/22-process-resource.md)에서는 WEB01의 프로세스·리소스와 Apache 상태를 점검하고, CPU 부하 종료 후 HTTP 200 응답을 확인하였다. [23단원](docs/23-log-management.md)에서는 시스템·Apache 로그를 분석하고 의도적인 HTTP 404 요청을 Access 로그에서 추적한 뒤 HTTP 200 정상 응답을 확인하였다. [24단원](docs/24-prometheus.md)에서는 MON01의 Prometheus 자체 메트릭 수집을 확인했고, [25단원](docs/25-node-exporter.md)에서는 6대 서버의 Node Exporter를 연동하여 전체 7 / 7 UP을 검증하였다. [26단원](docs/26-grafana.md)에서는 Grafana로 6대 서버의 CPU·메모리·디스크 대시보드를 구성하였다. [27단원](docs/27-alertmanager.md)에서는 WEB01 Node Exporter의 장애 발생과 복구 알림을 로컬 Webhook으로 검증하였다.
-
-[28단원](docs/28-file-backup.md)에서는 WEB01 파일의 rsync 백업·별도 경로 복원을, [29단원](docs/29-cron-backup.md)에서는 SSH 키 인증과 cron 자동 백업 실행을 검증하였다. [30단원](docs/30-mariadb-backup.md)에서는 MariaDB 논리 백업, 별도 데이터베이스 복원, 원본·복원본 데이터 비교 및 NAS01 전송 파일의 SHA-256 무결성을 검증하였다.
-
-[31단원](docs/31-nfs-backup.md)에서는 NAS01의 NFS 공유 파일 6개를 rsync로 백업·복원하고 원본·복원본의 파일 내용, 권한·ACL·SELinux 컨텍스트를 비교하였다. WEB01의 NFSv4.2 접근과 NAS01 원본 사이에서 SHA-256 해시값 일치도 검증하였다.
-
-[32단원](docs/32-integrated-recovery.md)에서는 MariaDB 중지 시 업무 포털 HTTP 500, NAS01 SSH 장애 시 rsync 백업 실패, HAProxy 중지 시 HTTP 연결 거부를 재현하고 서비스 복구 후 데이터 및 기능을 검증하였다. PHP 예외 메시지 원문은 확인되지 않아 검증 범위와 구분하여 기록하였다.
+[33단원 최종 검증](docs/33-final-verification.md)에서는 WEB01↔LB01 Ping 손실 0%, 웹·HAProxy HTTP 200, MariaDB 데이터, NAS01 RAID 1·LVM·NFS, 최근 백업, Prometheus 7/7 UP, Grafana 그래프 및 Alertmanager 연동을 캡처와 함께 정리했다. 이 결과는 각 점검 시점의 상태이며 장기 가용률을 의미하지 않는다.
 
 ## 7. 프로젝트 진행 현황
 
