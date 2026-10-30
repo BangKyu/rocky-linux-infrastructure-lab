@@ -317,9 +317,7 @@ HTTP 200 응답과 실제 공지사항 데이터 출력까지 확인하였다.
 
 **실행 서버: DB01**
 
-MariaDB 서비스를 일시적으로 중지하는 방식으로 장애를 재현하였다.
-
-사용한 장애 재현 절차:
+MariaDB 서비스를 일시적으로 중지하여 데이터베이스 장애를 재현하였다.
 
 ```bash
 sudo systemctl stop mariadb
@@ -327,19 +325,37 @@ sudo systemctl stop mariadb
 systemctl is-active mariadb
 ```
 
-서비스 중지 로그 확인 명령어:
+**실제 결과**
+
+```text
+inactive
+```
+
+종료 로그 확인:
 
 ```bash
 sudo journalctl -u mariadb -n 20 --no-pager
 ```
 
-MariaDB 서비스가 중지되면 DB 연결에 의존하는 PHP 업무 포털의 데이터 조회 기능에 영향을 줄 수 있다.
+**실제 종료 로그 중 주요 내용**
 
-단, **이번 실습 기록에서는 중지 당시의 `inactive` 출력과 종료 로그 원문을 확보하지 못했으므로 해당 결과를 임의로 기재하지 않았다.**
+```text
+Oct 30 14:33:49 db01 systemd[1]: Stopping MariaDB 10.5 database server...
+Oct 30 14:33:49 db01 systemd[1]: mariadb.service: Deactivated successfully.
+Oct 30 14:33:49 db01 systemd[1]: Stopped MariaDB 10.5 database server.
+```
+
+MariaDB 서비스가 `inactive`로 바뀌었고 systemd에 정상 중지 기록이 남았음을 확인하였다. 실제 데이터베이스나 테이블은 삭제하지 않았다.
+
+**스크린샷 03 — DB01 MariaDB 장애 발생 및 종료 로그**
+
+![DB01 MariaDB 서비스 중지 및 종료 로그](../screenshots/integrated-recovery/03-db01-mariadb-failure.png)
 
 ### 3.11 업무 포털 장애 영향 확인
 
-MariaDB 장애 중 WEB01에서 Apache/PHP 서비스 상태와 포털 HTTP 응답을 비교하는 절차를 사용하였다.
+**실행 서버: WEB01**
+
+MariaDB가 중지된 상태에서 Apache와 PHP-FPM 서비스 상태를 확인하였다.
 
 ```bash
 systemctl is-active httpd
@@ -347,7 +363,14 @@ systemctl is-active httpd
 systemctl is-active php-fpm
 ```
 
-포털 HTTP 응답 확인:
+**실제 결과**
+
+```text
+active
+active
+```
+
+웹 서버 프로세스는 정상 실행 중이지만 업무 포털의 DB 조회 기능에는 장애가 발생할 수 있으므로 실제 HTTP 응답을 확인하였다.
 
 ```bash
 curl -sS --max-time 10 \
@@ -356,20 +379,25 @@ curl -sS --max-time 10 \
   http://127.0.0.1/portal/index.php
 ```
 
-Apache 오류 로그 확인:
+**실제 결과**
+
+```text
+Portal HTTP status: 500
+```
+
+장애 전 HTTP 200이었던 포털이 MariaDB 중지 후 HTTP 500(Internal Server Error)을 반환하였다. 이 결과로 Apache와 PHP-FPM의 서비스 프로세스가 실행 중이어도 데이터베이스 의존 기능이 실패할 수 있음을 확인하였다.
+
+Apache 오류 로그도 조회하였다.
 
 ```bash
 sudo tail -n 20 /var/log/httpd/error_log
 ```
 
-**검증 기록의 한계**
+**로그 확인 결과:** 캡처된 최근 20줄에는 주로 Apache 실행 및 상태 관련 메시지가 표시되었고, 데이터베이스 연결 실패를 직접 보여주는 PHP 예외 메시지는 확인되지 않았다. 따라서 HTTP 500 발생은 실측 결과로 기록하되, 구체적인 PHP 예외 내용은 확인된 것으로 단정하지 않는다. MariaDB 중지와 복구에 따른 포털 응답 변화는 DB 서비스 의존성을 뒷받침한다.
 
-- 장애 전 포털 HTTP 200 확인
-- DB01의 MariaDB 서비스 재시작 결과 확인
-- 복구 후 포털 HTTP 200 확인
-- 장애 발생 당시의 실제 포털 HTTP 오류 코드 및 오류 로그는 미기록
+**스크린샷 04 — WEB01 Apache/PHP-FPM 정상, 포털 HTTP 500**
 
-따라서 이번 문서에서는 장애 중 포털이 HTTP 500 등의 특정 상태 코드를 반환했다고 단정하지 않는다.
+![WEB01 포털 HTTP 500 및 Apache 로그 확인](../screenshots/integrated-recovery/04-web01-portal-failure.png)
 
 ### 3.12 DB01 MariaDB 서비스 복구
 
@@ -461,7 +489,7 @@ MariaDB 서비스를 복구한 뒤 웹 포털에서 기존 공지사항 데이�
 | 장애 전 Apache | active |
 | 장애 전 PHP-FPM | active |
 | 장애 전 포털 HTTP | 200 |
-| MariaDB 장애 중 실제 HTTP 응답 | 기록 미확보 |
+| MariaDB 장애 중 실제 HTTP 응답 | 500 (Internal Server Error) |
 | MariaDB 재시작 | 성공 |
 | 복구 후 MariaDB | active |
 | 복구 후 공지사항 | 1건 |
@@ -470,7 +498,7 @@ MariaDB 서비스를 복구한 뒤 웹 포털에서 기존 공지사항 데이�
 
 **최종 결과: MariaDB 서비스 재시작 및 업무 포털 정상 동작 확인 완료**
 
-이번 실습에서는 DB 서비스 복구 후 기존 데이터와 포털 기능이 정상임을 검증하였다. 장애 중 포털의 구체적인 오류 응답과 로그는 추가 증빙이 필요한 항목으로 남겼다.
+이번 실습에서는 MariaDB가 `inactive`일 때 포털 HTTP 500을 확인하였고, DB 서비스 복구 후 포털 HTTP 200과 공지사항 데이터 1건 유지를 검증하였다. 단, Apache 오류 로그의 최근 20줄에서 구체적인 PHP/DB 연결 예외 메시지는 확인되지 않았다.
 
 ---
 
@@ -1255,8 +1283,8 @@ config : parsing [/etc/haproxy/haproxy.cfg:29] : 'pidfile' already specified. Co
 | 구분 | 시나리오 A | 시나리오 B | 시나리오 C |
 |---|---|---|---|
 | 정상 상태 검증 | 완료 | 완료 | 완료 |
-| 장애 발생 증빙 | 일부 미확보 | 완료 | 완료 |
-| 장애 오류 로그 | 일부 미확보 | 완료 | 완료 |
+| 장애 발생 증빙 | 완료 (MariaDB inactive, 포털 HTTP 500) | 완료 | 완료 |
+| 장애 오류 로그 | MariaDB 중지 로그 확인, PHP 예외 원문 미확인 | 완료 | 완료 |
 | 서비스 재시작 | 성공 | 성공 | 성공 |
 | 복구 후 기능 검증 | 포털 HTTP 200 | 백업 종료 코드 0 | HTTP 200 |
 | 데이터 검증 | 공지사항 1건 | SHA-256 일치 | HTTP 접근 검증 |
@@ -1266,9 +1294,9 @@ config : parsing [/etc/haproxy/haproxy.cfg:29] : 'pidfile' already specified. Co
 
 **MariaDB 장애**
 
-DB01의 MariaDB 서비스와 WEB01 업무 포털의 연동 관계를 확인하였다.
+MariaDB 서비스가 `inactive`로 중지된 상태에서 WEB01의 Apache와 PHP-FPM은 `active`였지만 포털은 HTTP 500을 반환하였다.
 
-데이터베이스 복구 후 기존 공지사항 데이터와 포털의 정상 동작을 검증하였다.
+데이터베이스 복구 후 HTTP 200과 기존 공지사항 데이터 1건 유지를 확인하여 서비스 의존성과 복구 효과를 검증하였다. 정확한 PHP 예외 메시지는 별도로 확보하지 못했다.
 
 **NAS 백업 연결 장애**
 
@@ -1375,7 +1403,7 @@ screenshots/
 | 01 | DB01 MariaDB 정상 상태 및 공지사항 데이터 |
 | 02 | WEB01 포털 HTTP 200 및 공지사항 조회 |
 | 03 | DB01 MariaDB 장애 발생 상태 및 로그 |
-| 04 | WEB01 포털 장애 응답 및 오류 로그 |
+| 04 | WEB01 Apache/PHP-FPM 정상, 포털 HTTP 500 및 Apache 로그 조회 |
 | 05 | DB01 MariaDB 복구 및 데이터 유지 |
 | 06 | WEB01 포털 HTTP 200 복구 |
 | 07 | NAS01 SSH 연결 거부 및 rsync 백업 실패 |
@@ -1386,11 +1414,11 @@ screenshots/
 | 12 | WEB01 HTTP 200과 HAProxy 경유 연결 실패 |
 | 13 | HAProxy 재시작 및 HTTP 200 복구 |
 
-**증빙 주의 사항**
+**증빙 확인 사항**
 
-03번과 04번은 이번 문서 작성 시 실제 출력과 캡처가 확인되지 않은 항목이다. 해당 스크린샷이 있다면 장애 발생 및 영향 분석 부분에 추가할 수 있다.
+01~13번 스크린샷을 확보하였다. 03번에는 MariaDB `inactive`와 systemd 중지 로그가, 04번에는 포털 HTTP 500과 Apache 로그 조회 화면이 포함되어 있다.
 
-나머지 스크린샷도 GitHub에 올릴 때 실제 파일명과 Markdown 이미지 경로가 일치하도록 관리한다.
+04번 Apache 오류 로그 화면에서는 직접적인 PHP/DB 연결 오류 메시지가 발견되지 않았으므로, 해당 오류 원문까지 확인한 것으로 기록하지 않는다.
 
 ---
 
@@ -1405,7 +1433,8 @@ screenshots/
 | 공지사항 원본 데이터 | 1건 | 성공 |
 | WEB01 Apache/PHP 정상 상태 | active | 성공 |
 | 장애 전 포털 HTTP | 200 | 성공 |
-| MariaDB 장애 중 HTTP 오류 | 미기록 | 추가 증빙 필요 |
+| MariaDB 장애 중 HTTP 오류 | HTTP 500 | 확인 |
+| MariaDB 장애 시 서비스 상태 | inactive | 확인 |
 | MariaDB 서비스 복구 | active | 성공 |
 | 공지사항 데이터 보존 | 1건 유지 | 성공 |
 | WEB01 포털 복구 | HTTP 200 | 성공 |
@@ -1430,7 +1459,7 @@ screenshots/
 
 **시나리오 A**
 
-MariaDB 서비스를 다시 실행한 뒤 `portal_db`의 공지사항 1건과 WEB01 포털 HTTP 200 응답을 확인하였다.
+MariaDB 중지 시 서비스가 `inactive`였고 WEB01 포털은 HTTP 500을 반환하였다. 서비스를 다시 실행한 뒤 `portal_db`의 공지사항 1건과 WEB01 포털 HTTP 200 응답을 확인하였다.
 
 **시나리오 B**
 
@@ -1486,7 +1515,7 @@ MariaDB는 실제 데이터를 조회하고, rsync는 백업 성공 로그와 �
 
 이번 실습에서는 Rocky Linux 9.8 기반 사내 업무 포털 인프라에서 세 가지 장애 복구 시나리오를 수행하였다.
 
-첫 번째 시나리오에서는 DB01 MariaDB 서비스 복구 후 기존 업무 데이터와 WEB01 PHP 포털 기능이 정상적으로 동작하는 것을 확인하였다.
+첫 번째 시나리오에서는 DB01 MariaDB 중지 시 WEB01 포털이 HTTP 500을 반환하는 것을 확인하였고, 서비스 복구 후 기존 업무 데이터와 WEB01 PHP 포털 기능이 정상적으로 동작하는 것을 확인하였다.
 
 두 번째 시나리오에서는 NAS01 SSH 서비스 중지로 rsync 백업 연결 장애를 재현하고, 백업 실패 로그 및 종료 코드를 분석하였다. 이후 SSH 서비스 복구, 백업 재실행 및 SHA-256 비교를 통해 복구 결과를 검증하였다.
 
@@ -1494,7 +1523,7 @@ MariaDB는 실제 데이터를 조회하고, rsync는 백업 성공 로그와 �
 
 이 과정을 통해 장애 발생 위치에 따른 영향 범위, 로그 기반 원인 분석, 서비스 복구 절차 및 복구 후 검증의 중요성을 학습하였다.
 
-**최종 성과: MariaDB, NAS 원격 백업, HAProxy 세 가지 서비스의 복구 검증 완료. MariaDB 장애 중 포털 오류 증빙은 추가 확인 항목으로 유지한다.**
+**최종 성과: MariaDB, NAS 원격 백업, HAProxy 세 가지 서비스의 장애 발생 및 복구 검증 완료. MariaDB 중 포털 HTTP 500과 복구 후 HTTP 200을 확인했으며, PHP 예외 원문은 확인 범위에 포함되지 않았다.**
 
 ---
 
